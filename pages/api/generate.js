@@ -15,20 +15,23 @@ export default async function (req, res) {
     return;
   }
 
-  const animal = req.body.animal || '';
-  if (animal.trim().length === 0) {
+  const description = req.body.description || '';
+  if (description.trim().length === 0) {
     res.status(400).json({
       error: {
-        message: "Please enter a valid animal",
+        message: "Please enter a valid description",
       }
     });
     return;
   }
 
+  const numWords = req.body.numWords;
+  const maxNumSyllables = req.body.maxNumSyllables;
+
   try {
     const completion = await openai.createCompletion({
       model: "text-davinci-003",
-      prompt: generatePrompt(animal),
+      prompt: generatePrompt(description, numWords, maxNumSyllables),
       temperature: 0.6,
     });
     res.status(200).json({ result: completion.data.choices[0].text });
@@ -48,15 +51,18 @@ export default async function (req, res) {
   }
 }
 
-function generatePrompt(animal) {
-  const capitalizedAnimal =
-    animal[0].toUpperCase() + animal.slice(1).toLowerCase();
-  return `Suggest three names for an animal that is a superhero.
+function generatePrompt(idea, numWords=1, maxNumSyllables=3) {
+  // const capitalizedAnimal =
+    // animal[0].toUpperCase() + animal.slice(1).toLowerCase();
+    const prompt = `Suggest a few names for my company that does the following: ${idea}. Use ${numWords} word(s). Each word has no more than ${maxNumSyllables} syllable(s). Separate names with commas.`
+    console.log(prompt);
+    return prompt;
+//   return `Suggest three names for an animal that is a superhero.
 
-Animal: Cat
-Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
-Animal: Dog
-Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
-Animal: ${capitalizedAnimal}
-Names:`;
+// Animal: Cat
+// Names: Captain Sharpclaw, Agent Fluffball, The Incredible Feline
+// Animal: Dog
+// Names: Ruff the Protector, Wonder Canine, Sir Barks-a-Lot
+// Animal: ${capitalizedAnimal}
+// Names:`;
 }
